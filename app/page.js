@@ -20,7 +20,7 @@ export default function Home() {
           });
         }}>Siguiente</Button>
       </> : <>
-        {players.map(player => <Button onClick={() => {
+        {players.map(player => <Button key={player.name} onClick={() => {
           dispatch({
             type: 'vote_player',
             value: player.name,

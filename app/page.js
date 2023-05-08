@@ -6,27 +6,29 @@ import { useStorage } from "./components/StorageProvider"
 import styles from './page.module.css'
 
 export default function Home() {
-  const { state: { word, turn, currentPlayerName, players }, dispatch } = useStorage();
+  const { state: { word, turn, currentPlayerName, players, finished, hidden }, dispatch } = useStorage();
   return (
     <div className={styles.main}>
-      Juego
-      { turn !== -1 ? <>
-        <h1>{word}</h1>
-        <h1>{currentPlayerName || ''}</h1>
+      { turn !== -2 ? <>
+        <div className={styles.word}>
+          <h1>{word}</h1>
+        </div>
+        <h2>{currentPlayerName || ''}</h2>
         <Button onClick={() => {
           dispatch({
             type: 'next_turn',
             value: '',
           });
-        }}>Siguiente</Button>
-      </> : <>
-        {players.map(player => <Button key={player.name} onClick={() => {
+        }}>{ (turn === -1 && finished) ? "Nuevo juego" : (hidden ? "Mostrar" : "Siguiente")  }</Button>
+      </> : <div className={styles.vote}>
+        Votación
+        {players.map(player => !player.out && <Button key={player.name} onClick={() => {
           dispatch({
             type: 'vote_player',
             value: player.name,
           });
         }}>{player.name}</Button>)}
-      </>}
+      </div>}
     </div>
   )
 }

@@ -9,7 +9,7 @@ import styles from './page.module.css'
 export default function Players() {
   return (
     <div className={styles.main}>
-      Jugadores
+      Agregar jugadores
       <PlayersInput />
       <PlayersList />
     </div>
@@ -38,12 +38,15 @@ function PlayersList() {
   return (
     <div className={styles.players}>
       { players.map(player => (<div key={player.name} className={styles.player}>
-        <h1>{ player.score } { player.name }</h1>
+        <p>{ player.score } { player.name }</p>
         <div className={styles.close} onClick={ () => dispatch({
           type: 'remove_player',
           value: player.name,
-        }) }><h2>X</h2></div>
+        })}><h2>-</h2></div>
       </div>)) }
+      <Button onClick={() => dispatch({
+          type: 'clear_storage',
+      })}>Clear data</Button>
     </div>
   );
 }

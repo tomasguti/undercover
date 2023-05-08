@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useMemo, useReducer } from 'react
 export const initialState = {
   players: [],
   turn: 0,
+  finished: true,
   word: '**********',
   words: null,
   hidden: true,
@@ -17,6 +18,7 @@ const setUnderCover = (players) => {
   if (players.length > 1) {
     players.forEach(player => {
       player.undercover = false;
+      player.out = false;
     });
 
     players[Math.floor(Math.random() * players.length)].undercover = true;
@@ -25,6 +27,11 @@ const setUnderCover = (players) => {
 
 export const AppReducer = (state, action) => {
   switch (action.type) {
+    case 'clear_storage': {
+      initialState.players = [];
+      localStorage.setItem('state', JSON.stringify(initialState));
+      return { ...initialState };
+    }
     case 'init_stored': {
       return action.value;
     }
@@ -47,6 +54,7 @@ export const AppReducer = (state, action) => {
         ...state,
         word,
         words,
+        finished: false,
       };
     }
     case 'add_player': {
@@ -65,29 +73,55 @@ export const AppReducer = (state, action) => {
       return { ...state };
     }
     case 'vote_player': {
-      state.players.forEach(player => {
+      const { players, words } = state;
+      let word;
+      let finished = false;
+      let votedPlayer;
+      let turn = -1;
+      players.forEach(player => {
         if (player.name === action.value) {
-          player.out = true;
+          votedPlayer = player;
+          if (player.undercover) {
+            word = `${player.name} era el impostor. La palabra de ciudadano era "${words.citizen}" y la del impostor "${words.undercover}".`;
+            finished = true;
+          } else {
+            word = `${player.name} no era el impostor.`;
+            player.out = true;
+          }
         }
       });
-      return { ...state };
+
+      const playersIn = players.filter(player => !player.out);
+      const undercover = players.find(player => player.undercover);
+      if (playersIn.length < 3) {
+        word = `${votedPlayer.name} no era el impostor. Era ${undercover.name}. La palabra de ciudadano era "${words.citizen}" y la del impostor "${words.undercover}".`;
+        finished = true;
+      }
+
+      // Suffle players and reset state
+      if (finished) {
+        const firstPlayer = players.shift();
+        players.push(firstPlayer);
+        players.forEach(player => player.out = false);
+      }
+      
+      return { ...state, turn, word, finished, hidden: false };
     }
     case 'next_turn': {
-      let { hidden, turn, players, words } = state;
+      let { hidden, turn, players, words, finished } = state;
       let nextTurn = turn;
       let currentPlayerName = initialState.currentPlayerName;
-      let player = players[turn] || null;
+      let player = players[turn];
       let word = initialState.word;
-      let finished = false;
 
       if (hidden) {
         hidden = false;
       } else if (players.length > 1) {
         do {
-          if (turn + 1 > players.length - 1 && nextTurn !== -1) {
-            // Last player, go vote
-            finished = true;
-            nextTurn = -1;
+          // Last player or wrong undercover selected
+          if ((turn + 1 > players.length - 1 && nextTurn !== -2) || (nextTurn === -1 && !finished)) {
+            // Go vote 
+            nextTurn = -2;
             word = 'Vote';
             player = { name: '', out: false };
           } else {
@@ -97,8 +131,6 @@ export const AppReducer = (state, action) => {
           }
         } while (player.out);
         hidden = true;
-      } else {
-        // No players left
       }
 
       if (words && !hidden) {
@@ -117,6 +149,7 @@ export const AppReducer = (state, action) => {
         hidden,
         currentPlayerName,
         word,
+        finished,
       };
     }
   }
@@ -146,13 +179,20 @@ export function StorageProvider({ children }) {
   // const [data, setData] = useLocalStorage('data', initialState);
 
   useEffect(() => {
-    if (JSON.parse(localStorage.getItem('state'))) {
+    const state = JSON.parse(localStorage.getItem('state'));
+    if (state) {
+      const { players, turn } = state;
+      let currentPlayerName = state.currentPlayerName;
 
+      if (!currentPlayerName && players[turn]) {
+        currentPlayerName = players[turn].name;
+      }
+    
       //checking if there already is a state in localstorage
       //if yes, update the current state with the stored one
       dispatch({
         type: 'init_stored',
-        value: JSON.parse(localStorage.getItem('state')),
+        value: { ...state, currentPlayerName },
       });
     } else {
       // Init storage with a new word
@@ -162,6 +202,11 @@ export function StorageProvider({ children }) {
 
   useEffect(() => {
     if (JSON.stringify(state) !== JSON.stringify(initialState)) {
+
+      // Move players and get new words
+      if (state.finished && state.turn === 0) {
+        getNewWords();
+      }
 
       localStorage.setItem('state', JSON.stringify(state || initialState));
 

@@ -2,7 +2,7 @@
 
 import React from "react"
 import Button from "./components/button";
-import { useStorage } from "./components/StorageProvider"
+import { useStorage } from "./storage/StorageProvider"
 import styles from './page.module.css'
 
 export default function Home() {

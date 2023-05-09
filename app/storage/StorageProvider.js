@@ -1,5 +1,7 @@
 'use client'
 
+import Papa from 'papaparse';
+
 import { createContext, useContext, useEffect, useMemo, useReducer } from 'react';
 
 export const initialState = {
@@ -173,6 +175,8 @@ export const AppReducer = (state, action) => {
 
 export const StorageContext = createContext();
 
+let allWords;
+
 export function StorageProvider({ children }) {
   const [ state, dispatch ] = useReducer(AppReducer, initialState);
 
@@ -180,15 +184,20 @@ export function StorageProvider({ children }) {
     return { state, dispatch };
   }, [state, dispatch]);
 
-  const getNewWords = () => {
-    fetch(`/api/${new Date().getTime()}`)
-    .then(response => response.json())
-    .then(value => {
-      console.log(value);
-      dispatch({
-        type: 'set_words',
-        value,
-      });
+  const getNewWords = async () => {
+    if (!allWords) {
+      allWords = await fetch('/words.csv')
+        .then(response => response.text())
+        .then(csv => Papa.parse(csv, { header: true }))
+        .then(result => result.data);
+    }
+
+    // Get random words
+    const value = allWords[Math.floor(Math.random() * allWords.length)];
+
+    dispatch({
+      type: 'set_words',
+      value,
     });
   };
 

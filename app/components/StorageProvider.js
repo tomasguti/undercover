@@ -181,7 +181,7 @@ export function StorageProvider({ children }) {
   }, [state, dispatch]);
 
   const getNewWords = () => {
-    fetch('/api')
+    fetch(`/api?t=${new Date().getTime()}`)
     .then(response => response.json())
     .then(value => {
       console.log(value);

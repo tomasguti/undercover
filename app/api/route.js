@@ -19,15 +19,5 @@ function loadWordsCSV() {
 export async function GET() {
   const words = await loadWordsCSV();
   const pick = words[Math.floor(Math.random() * words.length)];
-
-  return NextResponse.json(pick,
-    {
-      status: 200,
-      headers: {
-        'Cache-Control': 'private, s-maxage=1, stale-while-revalidate, max-age=0, no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': 0,
-      },
-    },
-  );
+  return NextResponse.json(pick);
 }

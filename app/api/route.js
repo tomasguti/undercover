@@ -23,7 +23,7 @@ export async function GET() {
   return NextResponse.json(pick,
     {
       status: 200,
-      headers: { 'Cache-Control': 's-maxage=0, max-age=0, no-cache' },
+      headers: { 'cache-control': 'private, s-maxage=0, max-age=0, no-cache, no-store' },
     },
   );
 }

@@ -23,7 +23,11 @@ export async function GET() {
   return NextResponse.json(pick,
     {
       status: 200,
-      headers: { 'cache-control': 'private, s-maxage=1, stale-while-revalidate=5, max-age=0, no-cache, no-store, must-revalidate' },
+      headers: {
+        'Cache-Control': 'private, s-maxage=1, stale-while-revalidate, max-age=0, no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': 0,
+      },
     },
   );
 }

@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
 import fs from 'fs';
 import csv from 'csv-parser';
+import { NextResponse } from 'next/server';
 
 function loadWordsCSV() {
   return new Promise((resolve) => {
@@ -16,8 +16,14 @@ function loadWordsCSV() {
   });
 }
  
-export async function GET(request) {
+export async function GET() {
   const words = await loadWordsCSV();
   const pick = words[Math.floor(Math.random() * words.length)];
-  return NextResponse.json(pick);
+
+  return NextResponse.json(pick,
+    {
+      status: 200,
+      headers: { 'Cache-Control': 's-maxage=0, max-age=0, no-cache' },
+    },
+  );
 }

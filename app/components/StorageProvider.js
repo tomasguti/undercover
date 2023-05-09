@@ -78,12 +78,14 @@ export const AppReducer = (state, action) => {
       let finished = false;
       let votedPlayer;
       let turn = -1;
+      let undercoverWon = false;
       players.forEach(player => {
         if (player.name === action.value) {
           votedPlayer = player;
           if (player.undercover) {
-            word = `${player.name} era el impostor. La palabra de ciudadano era "${words.citizen}" y la del impostor "${words.undercover}".`;
+            word = `${player.name} era el impostor. La palabra de los ciudadanos era "${words.citizen}" y la del impostor "${words.undercover}".`;
             finished = true;
+            undercoverWon = false;
           } else {
             word = `${player.name} no era el impostor.`;
             player.out = true;
@@ -94,14 +96,28 @@ export const AppReducer = (state, action) => {
       const playersIn = players.filter(player => !player.out);
       const undercover = players.find(player => player.undercover);
       if (playersIn.length < 3) {
-        word = `${votedPlayer.name} no era el impostor. Era ${undercover.name}. La palabra de ciudadano era "${words.citizen}" y la del impostor "${words.undercover}".`;
+        word = `${votedPlayer.name} no era el impostor. Era ${undercover.name}. La palabra de los ciudadanos era "${words.citizen}" y la del impostor "${words.undercover}".`;
         finished = true;
+        undercoverWon = true;
+        // Give undercover points
+        undercover.score += 10;
       }
 
-      // Suffle players and reset state
       if (finished) {
+        // Give citizen points
+        if (!undercoverWon) {
+          players.forEach(player => {
+            if (!player.undercover) {
+              player.score += 2;
+            }
+          });
+        }
+
+        // Shuffle players
         const firstPlayer = players.shift();
         players.push(firstPlayer);
+
+        // Reset state
         players.forEach(player => player.out = false);
       }
       

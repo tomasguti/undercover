@@ -20,15 +20,22 @@ export default function Home() {
             value: '',
           });
         }}>{ (turn === -1 && finished) ? "Nuevo juego" : (hidden ? "Mostrar" : "Siguiente")  }</Button>
-      </> : <div className={styles.vote}>
-        Votación
-        {players.map(player => !player.out && <Button key={player.name} onClick={() => {
-          dispatch({
-            type: 'vote_player',
-            value: player.name,
-          });
-        }}>{player.name}</Button>)}
-      </div>}
+      </> : 
+      <div>
+        <div className={styles.startPlayer}>
+          Arranca: {players[Math.floor(Math.random() * players.length)].name}
+        </div>
+        <div className={styles.vote}>
+          Votación
+          {players.map(player => !player.out && <Button key={player.name} onClick={() => {
+            dispatch({
+              type: 'vote_player',
+              value: player.name,
+            });
+          }}>{player.name}</Button>)}
+        </div>
+    </div>
+      }
     </div>
   )
 }

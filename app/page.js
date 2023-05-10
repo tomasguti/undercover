@@ -6,7 +6,7 @@ import { useStorage } from "./storage/StorageProvider"
 import styles from './page.module.css'
 
 export default function Home() {
-  const { state: { word, turn, currentPlayerName, players, finished, hidden }, dispatch } = useStorage();
+  const { state: { word, turn, currentPlayerName, players, finished, hidden, startPlayer }, dispatch } = useStorage();
   return (
     <div className={styles.main}>
       { turn !== -2 ? <>
@@ -23,7 +23,7 @@ export default function Home() {
       </> : 
       <div>
         <div className={styles.startPlayer}>
-          Arranca: {players.filter(player => !player.out)[Math.floor(Math.random() * players.filter(player => !player.out).length)].name}
+          Arranca: {startPlayer.name}
         </div>
         <div className={styles.vote}>
           Votación

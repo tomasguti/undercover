@@ -23,7 +23,7 @@ export default function Home() {
       </> : 
       <div>
         <div className={styles.startPlayer}>
-          Arranca: {players[Math.floor(Math.random() * players.length)].name}
+          Arranca: {players.filter(player => !player.out)[Math.floor(Math.random() * players.filter(player => !player.out).length)].name}
         </div>
         <div className={styles.vote}>
           Votación

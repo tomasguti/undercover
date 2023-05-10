@@ -130,6 +130,7 @@ export const AppReducer = (state, action) => {
       let nextTurn = turn;
       let currentPlayerName = initialState.currentPlayerName;
       let player = players[turn];
+      let startPlayer;
       let word = initialState.word;
 
       if (hidden) {
@@ -142,6 +143,7 @@ export const AppReducer = (state, action) => {
             nextTurn = -2;
             word = 'Vote';
             player = { name: '', out: false };
+            startPlayer = players.filter(player => !player.out)[Math.floor(Math.random() * players.filter(player => !player.out).length)];
           } else {
             // Next player
             nextTurn = (nextTurn + 1) % players.length;
@@ -168,6 +170,7 @@ export const AppReducer = (state, action) => {
         currentPlayerName,
         word,
         finished,
+        startPlayer
       };
     }
   }

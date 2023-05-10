@@ -12,6 +12,13 @@
   padding: 10px 20px;
 }
 
+.startPlayer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 30px;
+}
+
 .vote {
   display: flex;
   flex-direction: column;

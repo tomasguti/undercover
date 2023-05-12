@@ -4,6 +4,11 @@ import Papa from 'papaparse';
 
 import { createContext, useContext, useEffect, useMemo, useReducer } from 'react';
 
+export const SCREEN = {
+  'RESULT': -1,
+  'VOTE': -2,
+};
+
 export const initialState = {
   players: [],
   turn: 0,
@@ -13,6 +18,7 @@ export const initialState = {
   hidden: true,
   currentPlayerName: '',
   vote: false,
+  startPlayer: null,
 };
 
 const setUnderCover = (players) => {
@@ -32,6 +38,8 @@ export const AppReducer = (state, action) => {
     case 'clear_storage': {
       initialState.players = [];
       localStorage.setItem('state', JSON.stringify(initialState));
+      wordRows = null;
+      wordIndex = 0;
       return { ...initialState };
     }
     case 'init_stored': {
@@ -79,7 +87,7 @@ export const AppReducer = (state, action) => {
       let word;
       let finished = false;
       let votedPlayer;
-      let turn = -1;
+      let turn = SCREEN.RESULT;
       let undercoverWon = false;
       players.forEach(player => {
         if (player.name === action.value) {
@@ -137,13 +145,15 @@ export const AppReducer = (state, action) => {
         hidden = false;
       } else if (players.length > 1) {
         do {
-          // Last player or wrong undercover selected
-          if ((turn + 1 > players.length - 1 && nextTurn !== -2) || (nextTurn === -1 && !finished)) {
+          const isLastPlayer = turn + 1 > players.length - 1 && nextTurn !== SCREEN.VOTE;
+          const isWrongUndercover = nextTurn === SCREEN.RESULT && !finished;
+          if (isLastPlayer || isWrongUndercover) {
             // Go vote 
-            nextTurn = -2;
+            nextTurn = SCREEN.VOTE;
             word = 'Vote';
             player = { name: '', out: false };
-            startPlayer = players.filter(player => !player.out)[Math.floor(Math.random() * players.filter(player => !player.out).length)];
+            const playersLeft = players.filter(player => !player.out);
+            startPlayer = playersLeft[Math.floor(Math.random() * playersLeft.length)];
           } else {
             // Next player
             nextTurn = (nextTurn + 1) % players.length;
@@ -178,7 +188,8 @@ export const AppReducer = (state, action) => {
 
 export const StorageContext = createContext();
 
-let allWords;
+let wordRows;
+let wordIndex = 0;
 
 export function StorageProvider({ children }) {
   const [ state, dispatch ] = useReducer(AppReducer, initialState);
@@ -188,19 +199,32 @@ export function StorageProvider({ children }) {
   }, [state, dispatch]);
 
   const getNewWords = async () => {
-    if (!allWords) {
-      allWords = await fetch('/words.csv')
+    if (!wordRows) {
+      // Get CSV rows
+      wordRows = await fetch('/words.csv')
         .then(response => response.text())
-        .then(csv => Papa.parse(csv, { header: true }))
+        .then(csv => Papa.parse(csv, { header: false }))
         .then(result => result.data);
+
+      // Suffle rows
+      wordRows = wordRows
+        .map(value => ({ value, sort: Math.random() }))
+        .sort((a, b) => a.sort - b.sort)
+        .map(({ value }) => value);
+    } else {
+      // Get next row of words
+      wordIndex = (wordIndex + 1) % wordRows.length;
     }
 
-    // Get random words
-    const value = allWords[Math.floor(Math.random() * allWords.length)];
+    const relatedWords = wordRows[wordIndex];
+
+    // Pick one for the undercover
+    const undercover = relatedWords[Math.floor(Math.random() * relatedWords.length)];
+    const citizen = relatedWords.filter(word => word !== undercover)[Math.floor(Math.random() * (relatedWords.length - 1))];
 
     dispatch({
       type: 'set_words',
-      value,
+      value: { citizen, undercover },
     });
   };
 

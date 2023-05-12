@@ -1,9 +1,15 @@
 .button {
   padding: 10px;
+  color: rgb(255, 255, 255);
   border: solid 1px white;
   border-radius: 5px;
   width: 150px;
   text-align: center;
   margin: 10px;
   cursor: pointer;
+}
+
+.disabled {
+  color: rgb(50, 50, 50);
+  border: solid 1px rgb(50, 50, 50);
 }
